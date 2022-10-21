@@ -1,0 +1,14 @@
+[project]
+name = "protoc-gen-pyproject"
+version = "0.1.0"
+description = ""
+authors = [
+  { name = "John Children" }
+]
+
+dependencies = [
+  "betterproto>=2.0.0b5"
+]
+
+[project.scripts]
+protoc-gen-pyproject = "protoc_gen_pyproject:main"
