@@ -65,5 +65,15 @@ def generate_code(request: CodeGeneratorRequest) -> CodeGeneratorResponse:
 
     files = [CodeGeneratorResponseFile(name="pyproject.toml", content=file_content)]
 
+    include_py_typed = params.get("include_py_typed", True)
+    if include_py_typed is True:
+        package_name = params.get("package_name")
+        if package_name is None:
+            return CodeGeneratorResponse(
+                error=f"package_name must be set if `include_py_typed` is True."
+            )
+
+        files.append(CodeGeneratorResponseFile(name="py.typed", content=""))
+
     response = CodeGeneratorResponse(file=files)
     return response
