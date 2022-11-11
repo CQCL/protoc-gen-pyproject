@@ -1,6 +1,7 @@
 import os.path
 import re
-from typing import TypedDict
+from pathlib import Path
+from typing import TypedDict, cast
 
 from betterproto.lib.google.protobuf.compiler import (
     CodeGeneratorRequest,
@@ -65,15 +66,21 @@ def generate_code(request: CodeGeneratorRequest) -> CodeGeneratorResponse:
 
     files = [CodeGeneratorResponseFile(name="pyproject.toml", content=file_content)]
 
-    include_py_typed = params.get("include_py_typed", True)
-    if include_py_typed is True:
+    include_py_typed = params.get("include_py_typed")
+    if include_py_typed is None or (
+        include_py_typed is not None and include_py_typed["key"] != "False"
+    ):
         package_name = params.get("package_name")
         if package_name is None:
             return CodeGeneratorResponse(
                 error=f"package_name must be set if `include_py_typed` is True."
             )
 
-        files.append(CodeGeneratorResponseFile(name="py.typed", content=""))
+        files.append(
+            CodeGeneratorResponseFile(
+                name=str(Path(package_name["key"]) / "py.typed"), content=""
+            )
+        )
 
     response = CodeGeneratorResponse(file=files)
     return response
