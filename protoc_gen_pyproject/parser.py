@@ -8,6 +8,7 @@ import dunamai
 from betterproto.lib.google.protobuf.compiler import (
     CodeGeneratorRequest,
     CodeGeneratorResponse,
+    CodeGeneratorResponseFeature,
     CodeGeneratorResponseFile,
 )
 
@@ -52,6 +53,9 @@ def generate_code(request: CodeGeneratorRequest) -> CodeGeneratorResponse:
     Will look at the `gen_project` parameter if set to decide which
     file to use.
     """
+    response = CodeGeneratorResponse()
+    response.supported_features = CodeGeneratorResponseFeature.FEATURE_PROTO3_OPTIONAL
+
     params = parse_params(request.parameter)
 
     file_path = "pyproject.toml"
@@ -60,7 +64,8 @@ def generate_code(request: CodeGeneratorRequest) -> CodeGeneratorResponse:
         file_path = generate_pyproject_param["key"]
 
     if not os.path.exists(file_path):
-        return CodeGeneratorResponse(error=f"No project file found at '{file_path}'")
+        response.error = f"No project file found at '{file_path}'"
+        return response
 
     file_content = None
     with open(file=file_path) as f:
@@ -68,9 +73,9 @@ def generate_code(request: CodeGeneratorRequest) -> CodeGeneratorResponse:
 
     # Automatically set package version if configured to do so.
     set_version_from_vcs = params.get("set_version_from_vcs")
-    if set_version_from_vcs is not None:
+    if set_version_from_vcs is not None and set_version_from_vcs["key"] == "True":
         pyproject_toml = toml.loads(file_content)
-        pyproject_toml["version"] = dunamai.Version.from_any_vcs()
+        pyproject_toml["version"] = dunamai.Version.from_any_vcs().serialize()
         file_content = toml.dumps(pyproject_toml)
 
     files = [CodeGeneratorResponseFile(name="pyproject.toml", content=file_content)]
@@ -81,9 +86,8 @@ def generate_code(request: CodeGeneratorRequest) -> CodeGeneratorResponse:
     ):
         package_name = params.get("package_name")
         if package_name is None:
-            return CodeGeneratorResponse(
-                error=f"package_name must be set if `include_py_typed` is True."
-            )
+            response.error = f"package_name must be set if `include_py_typed` is True."
+            return response
 
         files.append(
             CodeGeneratorResponseFile(
@@ -91,5 +95,5 @@ def generate_code(request: CodeGeneratorRequest) -> CodeGeneratorResponse:
             )
         )
 
-    response = CodeGeneratorResponse(file=files)
+    response.files = files
     return response
