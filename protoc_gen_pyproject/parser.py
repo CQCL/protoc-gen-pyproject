@@ -1,8 +1,10 @@
 import os.path
 import re
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import TypedDict
 
+import toml
+import dunamai
 from betterproto.lib.google.protobuf.compiler import (
     CodeGeneratorRequest,
     CodeGeneratorResponse,
@@ -63,6 +65,13 @@ def generate_code(request: CodeGeneratorRequest) -> CodeGeneratorResponse:
     file_content = None
     with open(file=file_path) as f:
         file_content = f.read()
+
+    # Automatically set package version if configured to do so.
+    set_version_from_vcs = params.get("set_version_from_vcs")
+    if set_version_from_vcs is not None:
+        pyproject_toml = toml.loads(file_content)
+        pyproject_toml["version"] = dunamai.Version.from_any_vcs()
+        file_content = toml.dumps(pyproject_toml)
 
     files = [CodeGeneratorResponseFile(name="pyproject.toml", content=file_content)]
 

@@ -1,13 +1,15 @@
 [project]
 name = "protoc-gen-pyproject"
-version = "0.2.1"
+version = "0.3.0"
 description = ""
 authors = [
   { name = "John Children" }
 ]
 
 dependencies = [
-  "betterproto>=2.0.0b5"
+  "betterproto>=2.0.0b5",
+  "dunamai>=1.0",
+  "toml>=0.10"
 ]
 
 [project.scripts]
