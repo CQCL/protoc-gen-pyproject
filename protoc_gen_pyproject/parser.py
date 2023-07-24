@@ -95,5 +95,5 @@ def generate_code(request: CodeGeneratorRequest) -> CodeGeneratorResponse:
             )
         )
 
-    response.files = files
+    response.file = files
     return response
